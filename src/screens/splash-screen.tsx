@@ -6,6 +6,7 @@ import {
   Animated,
   Dimensions,
   StatusBar,
+  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants';
@@ -18,40 +19,109 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.3)).current;
+  const scaleAnim = useRef(new Animated.Value(0.5)).current;
   const logoOpacity = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  
+  // Sound bars animations
+  const bar1Anim = useRef(new Animated.Value(0.5)).current;
+  const bar2Anim = useRef(new Animated.Value(0.7)).current;
+  const bar3Anim = useRef(new Animated.Value(0.6)).current;
+  const bar4Anim = useRef(new Animated.Value(0.8)).current;
+  const bar5Anim = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
-    // Animation sequence
+    // Pulse animation for the glow effect
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.2,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+
+    // Sound bars animation
+    const animateSoundBar = (anim: Animated.Value, delay: number) => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(delay),
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 400,
+            easing: Easing.ease,
+            useNativeDriver: false,
+          }),
+          Animated.timing(anim, {
+            toValue: 0.3,
+            duration: 400,
+            easing: Easing.ease,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    };
+
+    animateSoundBar(bar1Anim, 0);
+    animateSoundBar(bar2Anim, 100);
+    animateSoundBar(bar3Anim, 200);
+    animateSoundBar(bar4Anim, 300);
+    animateSoundBar(bar5Anim, 400);
+
+    // Main animation sequence - Netflix style
     Animated.sequence([
-      // Fade in background
+      // Quick fade in background
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
+        duration: 300,
         useNativeDriver: true,
       }),
-      // Scale and fade logo
+      // Dramatic logo entrance with glow
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1,
-          tension: 20,
-          friction: 7,
+          tension: 15,
+          friction: 4,
           useNativeDriver: true,
         }),
         Animated.timing(logoOpacity, {
           toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 1,
           duration: 800,
+          easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }),
       ]),
-      // Hold for a moment
-      Animated.delay(1000),
-      // Fade out
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
+      // Hold and let it breathe
+      Animated.delay(1200),
+      // Quick fade out like Netflix
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.in(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(logoOpacity, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start(() => {
       onFinish();
     });
@@ -61,20 +131,30 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <StatusBar barStyle="light-content" backgroundColor="#000" />
       
-      {/* Background Gradient */}
-      <LinearGradient
-        colors={['#000000', '#1a0000', '#000000']}
-        style={StyleSheet.absoluteFillObject}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      />
+      {/* Pure Black Background - Netflix Style */}
+      <View style={styles.blackBackground} />
 
-      {/* Netflix-style red glow */}
-      <View style={styles.glowContainer}>
-        <View style={styles.redGlow} />
-      </View>
+      {/* Animated Red Glow - Netflix Effect */}
+      <Animated.View
+        style={[
+          styles.glowContainer,
+          {
+            opacity: glowAnim,
+            transform: [{ scale: pulseAnim }],
+          },
+        ]}
+      >
+        <LinearGradient
+          colors={[
+            'rgba(229, 9, 20, 0.3)',
+            'rgba(229, 9, 20, 0.15)',
+            'rgba(229, 9, 20, 0)',
+          ]}
+          style={styles.redGlow}
+        />
+      </Animated.View>
 
-      {/* Logo */}
+      {/* Main Logo Container */}
       <Animated.View
         style={[
           styles.logoContainer,
@@ -84,35 +164,61 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
           },
         ]}
       >
-        <LinearGradient
-          colors={['#e50914', '#b20710']}
-          style={styles.logoGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Text style={styles.logo}>W2W</Text>
-        </LinearGradient>
-        
-        <View style={styles.moviesBadge}>
-          <Text style={styles.moviesText}>MOVIES</Text>
-        </View>
+        {/* Giant "K" - Text Only, No Background, No Glow */}
+        <Text style={styles.letterK}>K</Text>
 
-        <Text style={styles.tagline}>Your Gateway to Entertainment</Text>
+        {/* Brand Text Below */}
+        <View style={styles.brandContainer}>
+          <Text style={styles.brandName}>W2W MOVIES</Text>
+          <View style={styles.brandUnderline} />
+        </View>
       </Animated.View>
 
-      {/* Loading indicator */}
-      <View style={styles.loadingContainer}>
-        <View style={styles.loadingBar}>
-          <Animated.View
-            style={[
-              styles.loadingProgress,
-              {
-                opacity: logoOpacity,
-              },
-            ]}
-          />
-        </View>
-      </View>
+      {/* Netflix-style Sound Wave Animation */}
+      <Animated.View
+        style={[
+          styles.soundWaveContainer,
+          {
+            opacity: logoOpacity,
+          },
+        ]}
+      >
+        <Animated.View
+          style={[
+            styles.soundBar,
+            styles.soundBar1,
+            { height: bar1Anim.interpolate({ inputRange: [0, 1], outputRange: [15, 35] }) },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.soundBar,
+            styles.soundBar2,
+            { height: bar2Anim.interpolate({ inputRange: [0, 1], outputRange: [20, 40] }) },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.soundBar,
+            styles.soundBar3,
+            { height: bar3Anim.interpolate({ inputRange: [0, 1], outputRange: [18, 38] }) },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.soundBar,
+            styles.soundBar4,
+            { height: bar4Anim.interpolate({ inputRange: [0, 1], outputRange: [22, 42] }) },
+          ]}
+        />
+        <Animated.View
+          style={[
+            styles.soundBar,
+            styles.soundBar5,
+            { height: bar5Anim.interpolate({ inputRange: [0, 1], outputRange: [12, 30] }) },
+          ]}
+        />
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -124,91 +230,83 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#000',
   },
+  blackBackground: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#000',
+  },
   glowContainer: {
     position: 'absolute',
-    width: width,
-    height: height,
+    width: width * 1.5,
+    height: width * 1.5,
     justifyContent: 'center',
     alignItems: 'center',
   },
   redGlow: {
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: Colors.primary,
-    opacity: 0.1,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 100,
+    width: '100%',
+    height: '100%',
+    borderRadius: width * 0.75,
   },
   logoContainer: {
     alignItems: 'center',
-    gap: 20,
+    justifyContent: 'center',
+    gap: 40,
   },
-  logoGradient: {
-    paddingHorizontal: 40,
-    paddingVertical: 20,
-    borderRadius: 20,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 20,
+  letterK: {
+    fontSize: 180,
+    fontWeight: '900',
+    color: Colors.primary, // Netflix red #E50914
+    letterSpacing: -5,
+    textShadowColor: 'rgba(0, 0, 0, 0.9)',
+    textShadowOffset: { width: 0, height: 8 },
+    textShadowRadius: 20,
+    includeFontPadding: false,
+    textAlign: 'center',
   },
-  logo: {
-    fontSize: 72,
+  brandContainer: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  brandName: {
+    fontSize: 28,
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowColor: 'rgba(229, 9, 20, 0.8)',
     textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 10,
+    textShadowRadius: 12,
   },
-  moviesBadge: {
-    backgroundColor: '#000',
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: Colors.primary,
+  brandUnderline: {
+    width: 120,
+    height: 4,
+    backgroundColor: Colors.primary,
+    borderRadius: 2,
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
     elevation: 8,
   },
-  moviesText: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: Colors.primary,
-    letterSpacing: 4,
-  },
-  tagline: {
-    fontSize: 14,
-    color: '#999',
-    letterSpacing: 2,
-    marginTop: 10,
-    fontWeight: '500',
-  },
-  loadingContainer: {
+  soundWaveContainer: {
     position: 'absolute',
-    bottom: 100,
-    width: 200,
+    bottom: 80,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 6,
+    height: 50,
   },
-  loadingBar: {
-    height: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  loadingProgress: {
-    height: '100%',
-    width: '100%',
+  soundBar: {
+    width: 4,
     backgroundColor: Colors.primary,
+    borderRadius: 2,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 4,
+    shadowRadius: 6,
+    elevation: 4,
   },
+  soundBar1: {},
+  soundBar2: {},
+  soundBar3: {},
+  soundBar4: {},
+  soundBar5: {},
 });

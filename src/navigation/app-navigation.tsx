@@ -22,21 +22,21 @@ import {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-// Custom Tab Icon with Gradient
+// Custom Tab Icon with Netflix Style
 const TabIcon = ({ name, color, focused }: { name: keyof typeof Ionicons.glyphMap; color: string; focused: boolean }) => {
-  if (focused) {
-    return (
-      <View style={styles.activeIconContainer}>
-        <LinearGradient
-          colors={['rgba(229, 9, 20, 0.2)', 'transparent']}
-          style={styles.iconGlow}
-        >
-          <Ionicons name={name} size={26} color={color} />
-        </LinearGradient>
-      </View>
-    );
-  }
-  return <Ionicons name={name} size={24} color={color} />;
+  return (
+    <View style={styles.iconWrapper}>
+      <Ionicons 
+        name={name} 
+        size={focused ? 28 : 24} 
+        color={color}
+        style={{ 
+          marginBottom: focused ? 2 : 0,
+        }} 
+      />
+      {focused && <View style={styles.activeIndicator} />}
+    </View>
+  );
 };
 
 function MainTabs() {
@@ -49,33 +49,28 @@ function MainTabs() {
           left: 0,
           right: 0,
           elevation: 0,
-          backgroundColor: 'transparent',
-          borderTopWidth: 0,
-          height: 75,
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          paddingTop: 10,
+          backgroundColor: Colors.background,
+          borderTopWidth: 1,
+          borderTopColor: 'rgba(255, 255, 255, 0.1)',
+          height: Platform.OS === 'ios' ? 85 : 65,
+          paddingBottom: Platform.OS === 'ios' ? 25 : 8,
+          paddingTop: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.5,
+          shadowRadius: 8,
         },
-        tabBarBackground: () => (
-          <LinearGradient
-            colors={[Colors.menuBg, Colors.bgGradient1]}
-            style={StyleSheet.absoluteFill}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.tabBarBorder} />
-          </LinearGradient>
-        ),
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: '#808080',
+        tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#737373',
         headerShown: false,
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '700',
-          marginTop: 4,
-          letterSpacing: 0.5,
+          fontSize: 10,
+          fontWeight: '600',
+          marginTop: -2,
+          letterSpacing: 0.3,
         },
         tabBarIconStyle: {
-          marginTop: 5,
+          marginTop: 0,
         },
       }}
     >
@@ -83,9 +78,9 @@ function MainTabs() {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarLabel: 'Trang chủ',
+          tabBarLabel: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="home" color={color} focused={focused} />
+            <TabIcon name={focused ? "home" : "home-outline"} color={color} focused={focused} />
           ),
         }}
       />
@@ -93,9 +88,9 @@ function MainTabs() {
         name="Movies"
         component={MoviesScreen}
         options={{
-          tabBarLabel: 'Phim lẻ',
+          tabBarLabel: 'Movies',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="film" color={color} focused={focused} />
+            <TabIcon name={focused ? "film" : "film-outline"} color={color} focused={focused} />
           ),
         }}
       />
@@ -103,9 +98,9 @@ function MainTabs() {
         name="TVShows"
         component={TVShowsScreen}
         options={{
-          tabBarLabel: 'Phim bộ',
+          tabBarLabel: 'TV Shows',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="tv" color={color} focused={focused} />
+            <TabIcon name={focused ? "tv" : "tv-outline"} color={color} focused={focused} />
           ),
         }}
       />
@@ -113,9 +108,9 @@ function MainTabs() {
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarLabel: 'Cá nhân',
+          tabBarLabel: 'My Netflix',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="person" color={color} focused={focused} />
+            <TabIcon name={focused ? "person" : "person-outline"} color={color} focused={focused} />
           ),
         }}
       />
@@ -169,28 +164,20 @@ export function AppNavigation() {
 }
 
 const styles = StyleSheet.create({
-  tabBarBorder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: Colors.menuBorder,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.3,
+  iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 40,
+  },
+  activeIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    marginTop: 4,
+    shadowColor: '#fff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
     shadowRadius: 4,
-    elevation: 4,
-  },
-  activeIconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconGlow: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
